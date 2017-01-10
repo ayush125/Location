@@ -129,7 +129,7 @@ class LocationDetailViewController: UITableViewController{
         dateLabel.text = format(date: Date())
         
         
-        //Speaking of the text view, once you’ve activated it there’s no way to get rid of the keyboard again. And because the keyboard takes up half of the screen that can be a bit annoying.
+        //once you’ve activated it there’s no way to get rid of the keyboard again. And because the keyboard takes up half of the screen that can be a bit annoying.
         //It would be nice if the keyboard disappeared after you tapped anywhere else on the screen.
         let gestureRecognizer = UIGestureRecognizer(target: self, action:#selector(hideKeyboard))
         gestureRecognizer.cancelsTouchesInView = false
@@ -149,7 +149,7 @@ class LocationDetailViewController: UITableViewController{
     }
     
     
-    // Unwind segue
+    // Unwind Seague
     @IBAction func categoryPickerDidPickCategory(_ segue: UIStoryboardSegue){
     
         let controller = segue.source as! CategoryPickerViewController

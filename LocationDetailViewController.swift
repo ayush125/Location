@@ -77,12 +77,13 @@ class LocationDetailViewController: UITableViewController{
         
     
         //2 - Once you have created new Location instance or use the same Location instance,you can use it like any other object. Here you set its properties to whatever the user entered in the screen.
-        location.category = categoryName
-        location.date = date
-        location.latitude = coordinate.latitude
-        location.longitude = coordinate.longitude
-        location.locationDescription = descriptionTextView.text
+        location.category=categoryName
+        location.date=date
+        location.latitude=coordinate.latitude
+        location.longitude=coordinate.longitude
+        location.locationDescription=descriptionTextView.text
         location.placemark = placemark
+
         
         
                // Info : Saving takes any objects that were added to the context, or any managed objects that had their contents changed, and permanently writes these changes into the data store. That’s why they call the context the “scratchpad”; its changes aren’t persisted until you save them.

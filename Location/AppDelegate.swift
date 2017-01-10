@@ -1,10 +1,9 @@
 //
 //  AppDelegate.swift
-//  Location
+//  TrackLocation
 //
-//  Created by iUS on 1/9/17.
-//  Copyright © 2017 ayush. All rights reserved.
-//
+//  Created by iUS on 11/9/16.
+//  Copyright © 2016 ayush. All rights reserved.//
 
 import UIKit
 import CoreData
@@ -16,7 +15,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+    
+        
+    
+        //In order to get a reference to the CurrentLocationViewController you first have to find the UITabBarController and then look at its viewControllers array.
+        let tabBarController = window!.rootViewController as! UITabBarController
+        
+        if let tabBarViewControllers = tabBarController.viewControllers{
+        
+            let currentLocationVC = tabBarViewControllers[0] as! CurrentLocationViewController
+            
+            let navigationController = tabBarViewControllers[1] as! UINavigationController
+            let locationsVC = navigationController.viewControllers[0]
+                as! LocationsViewController
+            let mapViewController = tabBarViewControllers[2] as! MapViewController
+            
+            
+            currentLocationVC.managedObjectContext = managedObjectContext
+            locationsVC.managedObjectContext = managedObjectContext
+            mapViewController.managedObjectContext = managedObjectContext
+            
+        }
+        
+        
+        
+        listenForFatalCoreDataNotifications()
+        
+        
         return true
     }
 
@@ -40,54 +65,64 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-        // Saves changes in the application's managed object context before the application terminates.
-        self.saveContext()
     }
 
-    // MARK: - Core Data stack
-
-    lazy var persistentContainer: NSPersistentContainer = {
-        /*
-         The persistent container for the application. This implementation
-         creates and returns a container, having loaded the store for the
-         application to it. This property is optional since there are legitimate
-         error conditions that could cause the creation of the store to fail.
-        */
-        let container = NSPersistentContainer(name: "Location")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                 
-                /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
-                 */
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+    
+    //Loading data model
+    //This is the code you need to load the data model that you’ve defined earlier, and to connect it to an SQLite data store.
+    //You instantiate a new NSPersistentContainer object with the name of the data model you created earlier, "DataModel". Then you tell it to loadPersistentStores(), which loads the data from the database into memory and sets up the Core Data stack.
+     lazy var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "DataModel")
+        container.loadPersistentStores(completionHandler: {
+            storeDescription, error in
+            if let error = error {
+                fatalError("Could load data store: \(error)")
             }
         })
         return container
     }()
+    
+    
+    //The goal here is to create a so-called NSManagedObjectContext object. That is the object you’ll use to talk to Core Data.
+    //To get the NSManagedObjectContext that we’re after, you can simply ask the persistentContainer for its viewContext property.
+     lazy var managedObjectContext: NSManagedObjectContext = self.persistentContainer.viewContext
 
-    // MARK: - Core Data Saving support
+    
+    func listenForFatalCoreDataNotifications() {
+        // 1 - Tell Notification Center that you want to be notified when ever a My ManagedObjectContextSaveDidFailNotification is posted. The actual code that is performed when that happens sits in a closure following "using:".
+        NotificationCenter.default.addObserver(
+            forName: MyManagedObjectContextSaveDidFailNotification,
+            object: nil, queue: OperationQueue.main, using: { notification in
+                // 2
+                let alert = UIAlertController(
+                    title: "Internal Error",
+                    message:
+                    "There was a fatal error in the app and it cannot continue.\n\n"
+                        + "Press OK to terminate the app. Sorry for the inconvenience.",
+                    preferredStyle: .alert)
+                
+                
+                let action = UIAlertAction(title: "OK", style: .default) { _ in
+                    let exception = NSException(
+                        name: NSExceptionName.internalInconsistencyException,
+                        reason: "Fatal Core Data error", userInfo: nil)
+                    exception.raise()
+                }
+                alert.addAction(action)
+            
+                self.viewControllerForShowingAlert().present(alert, animated: true,completion: nil)
 
-    func saveContext () {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
+        })
+    }
+            func viewControllerForShowingAlert() -> UIViewController {
+        let rootViewController = self.window!.rootViewController!
+        if let presentedViewController =
+            rootViewController.presentedViewController {
+            return presentedViewController
+        } else {
+            return rootViewController
         }
     }
-
+    
 }
 

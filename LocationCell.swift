@@ -20,7 +20,9 @@ class LocationCell: UITableViewCell {
         if location.locationDescription.isEmpty {
             descriptionLabel.text = "(No Description)"
         } else {
+           
             descriptionLabel.text = location.locationDescription
+
         }
         
         if let placemark = location.placemark {
